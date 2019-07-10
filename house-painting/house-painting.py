@@ -14,6 +14,22 @@ Write a program to print which color you could paint each
 building while abiding by these rules.
 """
 
+"""
+Interview Question Flow:
+— Interviewer a problem
+— Ask clarifying questions
+— Describe an algorithm
+— Choose a language and code up your algorithm
+— Fix bugs / edge cases
+— Describe time and space complexity
+
+Evaluation
+— Primary: Focus on getting a fully-working solution
+— Secondary: Optimality in terms of big-O time/space
+— Slight penalty for having bug or edge case pointed out (not discovering it yourself)
+— Recorded, but not “meaningfully factored”: Code quality, how much you test, verbalizing while coding.
+"""
+
 import logging, sys
 
 log = logging.getLogger(__name__)
