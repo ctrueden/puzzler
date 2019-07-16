@@ -85,10 +85,10 @@ def validate(buildings, paints, colors):
         index = colors[b]
         paints[index] -= quantity
         if paints[index] < 0:
-            raise 'Building #{} used {} of color #{}; {} remains'.format(b, quantity, index, paints[index])
+            raise Exception('Building #{} used {} of color #{}; {} remains'.format(b, quantity, index, paints[index]))
     for c in range(len(colors) - 1):
         if colors[c] == colors[c + 1]:
-            raise 'Buildings {} and {} have the same color {}'.format(c, c + 1, colors[c])
+            raise Exception('Buildings {} and {} have the same color {}'.format(c, c + 1, colors[c]))
 
 
 # -- Main --
