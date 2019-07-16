@@ -109,7 +109,7 @@ paints = [r.randint(55, 200) for i in range(10)]
 colors = paint(buildings, paints)
 validate(buildings, paints, colors)
 
-# Try with an antagonistic dataset.
+# Try with a naively antagonistic dataset.
 
 sys.setrecursionlimit(10000)
 
@@ -119,3 +119,20 @@ r.shuffle(paints)
 #paints.reverse()
 colors = paint(buildings, paints)
 validate(buildings, paints, colors)
+
+# Try with a truly difficult dataset.
+
+building_count = 5000
+expected_colors = []
+for b in range(building_count):
+    expected_colors.append(r.randint(0, 99))
+    while b > 0 and expected_colors[b - 1] == expected_colors[b]:
+        expected_colors[b] = r.randint(0, 99)
+buildings = [r.randint(2, 20) for _ in range(building_count)]
+paints = [0] * 100
+for b in range(building_count):
+    color_index = expected_colors[b]
+    paints[color_index] += buildings[b]
+colors = paint(buildings, paints)
+validate(buildings, paints, colors)
+#validate(buildings, paints, expected_colors)
