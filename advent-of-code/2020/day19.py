@@ -13,9 +13,10 @@ def resolve(rules, no, depth=0):
     """
     Expands the given rule to all possible terminal expressions.
 
-    :param rules: The dict of rules, which can include both terminal and intermediate expressions.
+    :param rules: The dict of rules, which can include both terminal and unresolved expressions.
                   A terminal expression has only literals -- e.g. `abbabaaba`.
-                  An intermediate expression has 1+ rule number sequences, separated by the pipe symbol -- e.g. `1 3 2 | 4 6 7`.
+                  An unresolved expression has 1+ options (rule number sequences),
+                  separated by the pipe symbol -- e.g. `1 3 2 | 4 6 7`.
     :param no: The rule number to expand.
     :return: List of terminal expressions for the desired rule number.
     """
@@ -28,8 +29,8 @@ def resolve(rules, no, depth=0):
     rule = rules[no]
     logging.debug(f"{prefix} Rule #{no} = {rule}")
 
-    # NB: We store resolved lists of terminals using the list data type,
-    # and unresolved intermediate expressions using the options data type.
+    # NB: We store a resolved collection of terminals using the list data type,
+    # and unresolved expressions using the options data type.
     if type(rule) == options:
         # This is an unresolved rule. Resolve it now.
         all_terminals = []
