@@ -9,7 +9,7 @@ class options(list):
         # Chop off the square brackets around the list string representation.
         return "options(" + list.__str__(self)[1:-1] + ")"
 
-def resolve(rules, no, depth=0):
+def resolve(rules, no, maxlen=float("inf"), depth=0):
     """
     Expands the given rule to all possible terminal expressions.
 
@@ -36,7 +36,7 @@ def resolve(rules, no, depth=0):
         all_terminals = set()
         for option in rule:
             logging.debug(f"{prefix} Resolving option {option}")
-            resolved = [resolve(rules, r, depth=depth+1) for r in option]
+            resolved = [resolve(rules, r, maxlen, depth=depth+1) for r in option]
             # Now we have a list of resolved rules, each of which is a list of strings/terminals.
             # We need the product of these lists. E.g., suppose:
             # This rule option is 1 2.
@@ -44,7 +44,7 @@ def resolve(rules, no, depth=0):
             # Resolved rule 2 is ['aa', 'bb']
             # 1 2 -> ['ab', 'ba'] x ['aa', 'bb'] -> ['abaa', 'abbb', 'baaa', 'babb']
             logging.debug(f"{prefix} Option {option} resolved -- {len(resolved)} possibilities")
-            terminals = [''.join(t) for t in itertools.product(*resolved)]
+            terminals = [''.join(t) for t in itertools.product(*resolved) if len(t) <= maxlen]
             logging.debug(f"{prefix} Expanded {len(terminals)} terminals")
             all_terminals.update(terminals)
 
@@ -85,7 +85,7 @@ def main():
 
     # Validate part 2 example input.
     ex_rules, ex_messages = parse_input("day19-2-ex.txt")
-    ex_valid_terminals = resolve(ex_rules, '0')
+    ex_valid_terminals = resolve(ex_rules, '0', maxlen=max(len(m) for m in messages))
     print(f"[Part 2] Initial possible terminal count = {len(ex_valid_terminals)}")
     print(f"[Part 2] Initial matching message count = {sum(1 for m in ex_messages if m in ex_valid_terminals)}")
 
@@ -93,7 +93,7 @@ def main():
     ex_rules, ex_messages = parse_input("day19-2-ex.txt")
     ex_rules['8'] = parse_rule('42 | 42 8')
     ex_rules['11'] = parse_rule('42 31 | 42 11 31')
-    ex_valid_terminals = resolve(ex_rules, '0')
+    ex_valid_terminals = resolve(ex_rules, '0', maxlen=max(len(m) for m in ex_messages))
     print(f"[Part 2] Adjusted possible terminal count = {len(ex_valid_terminals)}")
     print(f"[Part 2] Adjusted matching message count = {sum(1 for m in ex_messages if m in ex_valid_terminals)}")
 
@@ -101,7 +101,7 @@ def main():
     rules, messages = parse_input("day19.txt")
     rules['8'] = parse_rule('42 | 42 8')
     rules['11'] = parse_rule('42 31 | 42 11 31')
-    valid_terminals = resolve(rules, '0')
+    valid_terminals = resolve(rules, '0', maxlen=max(len(m) for m in messages))
     print(f"[Part 2] Rule #0 now has {len(valid_terminals)} possible terminals.")
 
 if __name__ == '__main__':
