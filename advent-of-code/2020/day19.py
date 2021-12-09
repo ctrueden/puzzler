@@ -2,6 +2,8 @@ import itertools
 import logging
 #logging.basicConfig(level=logging.DEBUG, format='')
 
+shiftwidth = 4
+
 class options(list):
     def __str__(self):
         # Chop off the square brackets around the list string representation.
@@ -17,7 +19,7 @@ def resolve(rules, no, depth=0):
     :param no: The rule number to expand.
     :return: List of terminal expressions for the desired rule number.
     """
-    prefix = f"{' ' * depth}[{no}]"
+    prefix = f"{' ' * (shiftwidth*depth)}[{no}]"
     if not no in rules:
         # terminal rule!
         terminal = list(no[1]) # HACK: It's always a single letter, double quoted.
@@ -33,7 +35,7 @@ def resolve(rules, no, depth=0):
         all_terminals = []
         for option in rule:
             logging.debug(f"{prefix} Resolving option {option}")
-            resolved = [resolve(rules, r, depth + 4) for r in option]
+            resolved = [resolve(rules, r, depth=depth+1) for r in option]
             # Now we have a list of resolved rules, each of which is a list of strings/terminals.
             # We need the product of these lists. E.g., suppose:
             # This rule option is 1 2.
