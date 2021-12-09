@@ -72,6 +72,13 @@ def parse_input(filepath):
             messages.append(line.strip())
     return rules, messages
 
+def adjust_rules(rules):
+    """
+    Replaces rules 8 and 11 as described in the problem statement.
+    """
+    rules['8'] = parse_rule('42 | 42 8')
+    rules['11'] = parse_rule('42 31 | 42 11 31')
+
 def main():
     # Read in the rules.
     rules, messages = parse_input("day19.txt")
@@ -89,18 +96,16 @@ def main():
     print(f"[Part 2] Initial possible terminal count = {len(ex_valid_terminals)}")
     print(f"[Part 2] Initial matching message count = {sum(1 for m in ex_messages if m in ex_valid_terminals)}")
 
-    # Regenerate terminals with updated rules #8 and #11 in place.
+    # Regenerate terminals with adjusted rules in place.
     ex_rules, ex_messages = parse_input("day19-2-ex.txt")
-    ex_rules['8'] = parse_rule('42 | 42 8')
-    ex_rules['11'] = parse_rule('42 31 | 42 11 31')
+    adjust_rules(ex_rules)
     ex_valid_terminals = resolve(ex_rules, '0', maxlen=max(len(m) for m in ex_messages))
     print(f"[Part 2] Adjusted possible terminal count = {len(ex_valid_terminals)}")
     print(f"[Part 2] Adjusted matching message count = {sum(1 for m in ex_messages if m in ex_valid_terminals)}")
 
-    # Re-resolve rule #0 with adjusted rules #8 and #11.
+    # Re-resolve rule #0 with adjusted rules in place.
     rules, messages = parse_input("day19.txt")
-    rules['8'] = parse_rule('42 | 42 8')
-    rules['11'] = parse_rule('42 31 | 42 11 31')
+    adjust_rules(rules)
     valid_terminals = resolve(rules, '0', maxlen=max(len(m) for m in messages))
     print(f"[Part 2] Rule #0 now has {len(valid_terminals)} possible terminals.")
 
