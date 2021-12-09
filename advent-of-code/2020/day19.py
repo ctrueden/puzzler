@@ -81,13 +81,13 @@ def main():
     print(f"Rule #0 has {len(valid_terminals)} possible terminals.")
 
     # Check each message in our message list.
-    print(f"[Part 1] Matching message count = {sum(1 for message in messages if message in valid_terminals)}")
+    print(f"[Part 1] Matching message count = {sum(1 for m in messages if m in valid_terminals)}")
 
     # Validate part 2 example input.
     ex_rules, ex_messages = parse_input("day19-2-ex.txt")
     ex_valid_terminals = resolve(ex_rules, '0')
     print(f"[Part 2] Initial possible terminal count = {len(ex_valid_terminals)}")
-    print(f"[Part 2] Initial matching message count = {sum(1 for message in ex_messages if message in ex_valid_terminals)}")
+    print(f"[Part 2] Initial matching message count = {sum(1 for m in ex_messages if m in ex_valid_terminals)}")
 
     # Regenerate terminals with updated rules #8 and #11 in place.
     ex_rules, ex_messages = parse_input("day19-2-ex.txt")
@@ -95,7 +95,7 @@ def main():
     ex_rules['11'] = parse_rule('42 31 | 42 11 31')
     ex_valid_terminals = resolve(ex_rules, '0')
     print(f"[Part 2] Adjusted possible terminal count = {len(ex_valid_terminals)}")
-    print(f"[Part 2] Adjusted matching message count = {sum(1 for message in ex_messages if message in ex_valid_terminals)}")
+    print(f"[Part 2] Adjusted matching message count = {sum(1 for m in ex_messages if m in ex_valid_terminals)}")
 
     # Re-resolve rule #0 with adjusted rules #8 and #11.
     rules, messages = parse_input("day19.txt")
