@@ -76,8 +76,12 @@ def adjust_rules(rules):
     """
     Replaces rules 8 and 11 as described in the problem statement.
     """
-    rules['8'] = parse_rule('42 | 42 8')
-    rules['11'] = parse_rule('42 31 | 42 11 31')
+    # HACK: To avoid infinite recursion, we unroll the recursive rules a fixed
+    # number of times (3). However: A) it is probably not a sufficient number
+    # of times to get the correct answer, and B) even at this level, it still
+    # results in a too-large explosion of resolved terminals.
+    rules['8'] = parse_rule('42 | 42 42 | 42 42 42') #parse_rule('42 | 42 8')
+    rules['11'] = parse_rule('42 31 | 42 42 31 31 | 42 42 42 31 31 31') #parse_rule('42 31 | 42 11 31')
 
 def main():
     # Read in the rules.
