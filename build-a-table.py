@@ -193,6 +193,10 @@ def solve(table: Table, pieces: List[Piece]):
 
     return solution
 
+# Puzzler IDEAS:
+# 1. Build a perimeter.
+# 2. Only allow adding pieces that touch another piece on the table.
+# 3. Group identical pieces using Counter, and recurse only on each unique piece.
 
 cabinet_drawer_1 = Piece(18, 25)
 cabinet_drawer_2 = Piece(18, 25)
