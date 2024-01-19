@@ -16,7 +16,7 @@
 infile = "10-input.txt"
 
 with open(infile) as f:
-    lines = f.readlines()
+    lines = [line.strip() for line in f.readlines()]
 
 Pos = tuple[int, int]
 Step = tuple[int, int]
@@ -43,7 +43,10 @@ class Field:
 
 field = Field(lines)
 
-print(field.start())
+print("Input:")
+for line in lines: print(line)
+print()
+print(f"Start: {field.start()}")
 
 # NB: Coordinates are (y, x) -- i.e. (vertical, horizontal) -- i.e. (row, col)
 up: Step = (-1, 0)
@@ -51,6 +54,7 @@ dn: Step = (1, 0)
 lt: Step = (0, -1)
 rt: Step = (0, 1)
 motions = {
+    '.': set(),
     'S': {up, dn, lt, rt},
     '|': {up, dn},
     '-': {lt, rt},
@@ -59,9 +63,6 @@ motions = {
     '7': {lt, dn},
     'L': {rt, up},
 }
-
-def valid(square1: str, square2: str):
-    return len(motions[square1] & motions[square2]) > 0
 
 # Algorithm:
 # - From S, check the four directions.
@@ -83,23 +84,28 @@ class Cursor:
         self.length = 0
         self.done = False
 
-    def move(self, direction: Step = None):
+    def move(self, step: Step = None):
         square = field.square(*self.pos)
 
-        if direction is None:
+        if step is None:
             # Infer the direction, based on the previous move.
             if square == 'S':
                 raise RuntimeError("Cannot infer direction from start square")
             directions = motions[square]
             # Find the direction that doesn't take us back to where we were before.
-            direction = next(iter(d for d in directions if d != self.last))
+            step = next(iter(d for d in directions if plus(self.pos, d) != self.last))
 
-        nextPos = plus(self.pos, direction)
+        nextPos = plus(self.pos, step)
         nextSquare = field.square(*nextPos)
-        if valid(square, nextSquare):
+
+        # Determine whether the move is valid.
+        valid = step in motions[square] and inverse(step) in motions[nextSquare]
+
+        if valid:
             self.last = self.pos
             self.pos = nextPos
             self.length += 1
+            print(f"pos -> {self.pos} [{self.length}]")
             # If we are not at the start square again, stop.
             if nextSquare == 'S':
                 self.done = True
@@ -112,15 +118,21 @@ class Cursor:
     def __str__(self):
         return str(self.pos)
 
-def plus(p1: Pos, p2: Pos):
-    return tuple(x + y for x, y in zip(p1, p2))
+
+def plus(p: Pos, step: Step) -> Pos:
+    return tuple(x + y for x, y in zip(p, step))
+
+
+def inverse(step: Step) -> Step:
+    return (-step[0], -step[1])
+
 
 for initialDir in (up, dn, lt, rt):
+    print("--------------")
     print(f"Moving {initialDir} initially...")
     cursor = Cursor(field, field.start()); cursor.move(initialDir)
     while not cursor.done:
         cursor.move()
     print("Done.")
-    print(cursor.looped())
-    print(cursor.length)
-    print("------------")
+    print(f"Route length = {cursor.length}")
+    print(f"looped? {cursor.looped()}")
