@@ -127,6 +127,8 @@ def inverse(step: Step) -> Step:
     return (-step[0], -step[1])
 
 
+maxLength = 0
+
 for initialDir in (up, dn, lt, rt):
     print("--------------")
     print(f"Moving {initialDir} initially...")
@@ -136,3 +138,8 @@ for initialDir in (up, dn, lt, rt):
     print("Done.")
     print(f"Route length = {cursor.length}")
     print(f"looped? {cursor.looped()}")
+    if cursor.looped() and cursor.length > maxLength: maxLength = cursor.length
+
+print("===========")
+print(f"Max length = {maxLength}")
+print(f"Max distance = {maxLength // 2}")
