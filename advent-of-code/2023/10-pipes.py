@@ -121,6 +121,8 @@ class Cursor:
             # If we are not at the start square again, stop.
             if nextSquare == 'S':
                 self.done = True
+
+            # TODO: set this new square to matching pipe symbol.
         else:
             self.done = True
 
@@ -155,3 +157,15 @@ for initialDir in (up,): # , dn, lt, rt):
 print("===========")
 print(f"Max length = {maxLength}")
 print(f"Max distance = {maxLength // 2}")
+
+# TODO: do a second pass through the loop in the `path` field:
+# - flood fill left, with "A" for up/left, and "B" for down/right.
+# - count the number of As and number of Bs as we go.
+#
+# When we are done tracing the path, we have two numbers. Which one is correct?
+# If any As are touching the edge of the board, it's outside.
+# If any Bs are touching the edge of the board, it's outside.
+# If both As and Bs are touching the edge of the board, we have a bug.
+# For our puzzle input, we don't have a pipe ALL the way around the outside,
+# so exactly one of A xor B will touch the outside.
+# Otherwise, we could expand one extra row to force it to have this constraint.
