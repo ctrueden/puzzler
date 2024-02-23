@@ -53,6 +53,9 @@ class Field:
 
 field = Field(lines)
 
+# Create an empty field of the same size with all "." symbols.
+path = Field([['.'] * field.colCount for _ in range(field.rowCount)])
+
 print("Input:")
 field.print()
 print(f"Start: {field.start()}")
