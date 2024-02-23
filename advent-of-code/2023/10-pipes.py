@@ -24,6 +24,8 @@ Step = tuple[int, int]
 class Field:
     def __init__(self, lines):
         self.lines = lines
+        self.rowCount = len(lines)
+        self.colCount = len(lines[0]) # NB: Assumes same-length lines.
 
     def start(self) -> Pos:
         for i, line in enumerate(self.lines):
@@ -32,11 +34,9 @@ class Field:
         raise RuntimeError("THERE IS NO START WTF")
 
     def square(self, row, col):
-        rowCount = len(lines)
-        colCount = len(lines[0]) # NB: Assumes same-length lines.
         return (
             '.'
-            if row < 0 or row >= rowCount or col < 0 or col >= colCount
+            if row < 0 or row >= self.rowCount or col < 0 or col >= self.colCount
             else
             lines[row][col]
         )
