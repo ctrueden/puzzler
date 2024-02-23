@@ -141,7 +141,7 @@ def inverse(step: Step) -> Step:
 
 maxLength = 0
 
-for initialDir in (up, dn, lt, rt):
+for initialDir in (up,): # , dn, lt, rt):
     print("--------------")
     print(f"Moving {initialDir} initially...")
     cursor = Cursor(field, field.start()); cursor.move(initialDir)
