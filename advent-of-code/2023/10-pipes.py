@@ -16,21 +16,21 @@
 infile = "10-input.txt"
 
 with open(infile) as f:
-    lines = [line.strip() for line in f.readlines()]
+    lines = [list(line.strip()) for line in f.readlines()]
 
 Pos = tuple[int, int]
 Step = tuple[int, int]
 
 class Field:
-    def __init__(self, lines):
-        self.lines = lines
-        self.rowCount = len(lines)
-        self.colCount = len(lines[0]) # NB: Assumes same-length lines.
+    def __init__(self, data):
+        self.data = data
+        self.rowCount = len(data)
+        self.colCount = len(data[0]) # NB: Assumes same-length rows.
 
     def start(self) -> Pos:
-        for i, line in enumerate(self.lines):
-            s = line.find("S")
-            if s >= 0: return i, s
+        for i, rowData in enumerate(self.data):
+            if "S" in rowData:
+                return i, rowData.index("S")
         raise RuntimeError("THERE IS NO START WTF")
 
     def square(self, row, col):
@@ -38,14 +38,23 @@ class Field:
             '.'
             if row < 0 or row >= self.rowCount or col < 0 or col >= self.colCount
             else
-            lines[row][col]
+            self.data[row][col]
         )
+
+    def set(self, row, col, value):
+        if row < 0 or row >= self.rowCount or col < 0 or col >= self.colCount:
+            return
+        self.data[row][col] = value
+
+    def print(self):
+        for rowData in self.data: print(rowData)
+        print()
+
 
 field = Field(lines)
 
 print("Input:")
-for line in lines: print(line)
-print()
+field.print()
 print(f"Start: {field.start()}")
 
 # NB: Coordinates are (y, x) -- i.e. (vertical, horizontal) -- i.e. (row, col)
