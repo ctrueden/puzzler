@@ -6,7 +6,7 @@ def fancy_time(se):
     ye = da / 365
     mo = ye * 12
     fmt = lambda n: f"{float(n):.3f}".rstrip('0').rstrip('.')
-    message = f"{se} seconds"
+    message = f"{fmt(se)} seconds"
     if mi >= 1: message += f" / {fmt(mi)} minutes"
     if ho >= 1: message += f" / {fmt(ho)} hours"
     if da >= 1: message += f" / {fmt(da)} days"

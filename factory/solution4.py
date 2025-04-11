@@ -1,11 +1,11 @@
 """
 After a costly power grid failure brought on by insufficiently frequent power
 cycling, your boss relents and says she is willing to tolerate machines sitting
-idle for VERY SMALL amounts of time, as long as it reduces future grid failure
+idle for LIMITED amounts of time, as long as it reduces future grid failure
 incidents by greatly improving the power cycling time.
 
 Efficiency must still not drop below FIVE NINES (99.999%) for any machine in
-the factory, as measured by the ratio (machine_active_runtime / cycle_length).
+the factory, as measured by the ratio: (machine_active_runtime / cycle_length).
 
 Your measured runtime values:
 * fizzwidget machines: 1319.546875 seconds
@@ -32,17 +32,15 @@ from math import floor, gcd, lcm
 from util import fancy_time
 
 
-def rlcm(*args):
-    return Fraction(
-        lcm(*(f.numerator for f in args)),
-        gcd(*(f.denominator for f in args))
-    )
-
-
 def efficiency(fizz, bob, cycle_len):
     fizz_count = floor(cycle_len / fizz)
     bob_count = floor(cycle_len / bob)
     return Fraction(min(fizz_count * fizz, bob_count * bob) / cycle_len)
+
+
+def report(fizz, bob, cutoff):
+    cycle_len, eff = best_cycle(fizz, bob, cutoff)
+    print(f"{fizz} and {bob} --> [{float(100*eff)}%] {float(cycle_len)} seconds")
 
 
 def best_cycle(fizz, bob, cutoff):
@@ -61,22 +59,25 @@ def best_cycle(fizz, bob, cutoff):
             num_bob += 1
 
 
-def report(fizz, bob, cutoff):
-    cycle_len, eff = best_cycle(fizz, bob, cutoff)
-    print(f"{fizz} and {bob} --> [{float(100*eff)}%] {float(cycle_len)} seconds")
+def rlcm(*args):
+    return Fraction(
+        lcm(*(f.numerator for f in args)),
+        gcd(*(f.denominator for f in args))
+    )
 
+
+measures = (
+    (Fraction(1319546875, 1000000), Fraction(889984375, 1000000)), # you
+    (Fraction(1319859375, 1000000), Fraction(889734375, 1000000)), # Morton
+    (Fraction(1319709283, 1000000), Fraction(889927894, 1000000)), # Wendy
+)
 
 print(f"--- 100% ---")
-for fizz, bob in (
-    (1319.546875, 889.984375), # you
-    (1319.859375, 889.734375), # Morton
-    (1319.709283, 889.927894), # Wendy
-):
-    print(f"{fizz} and {bob} --> {fancy_time(rlcm(Fraction(fizz), Fraction(bob)))}")
+for fizz, bob in measures:
+    print(f"{fizz} and {bob} --> {fancy_time(rlcm(fizz, bob))}")
 
 for cutoff in [0.99999, 0.9999, 0.999, 0.99, 0.9]:
     print()
     print(f"--- {100*cutoff:.5g}% ---")
-    report(1319.546875, 889.984375, cutoff)  # your measurements
-    report(1319.859375, 889.734375, cutoff)  # Morton's measurements
-    report(1319.709283, 889.927894, cutoff)  # Wendy's measurements
+    for fizz, bob in measures:
+        report(fizz, bob, cutoff)

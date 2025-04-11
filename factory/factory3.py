@@ -41,7 +41,14 @@ def cycle_length(fizz, bob):
 
 
 def print_combo(fizz, bob):
-    print(f"{fizz} and {bob}: {fancy_time(cycle_length(fizz, bob))}")
+    cycle_len = cycle_length(fizz, bob)
+    print(f"{float(fizz)} and {float(bob)}: {fancy_time(cycle_len)}")
+    # Sanity checks.
+    from fractions import Fraction
+    fq = Fraction(str(cycle_len)) / Fraction(str(fizz))
+    bq = Fraction(str(cycle_len)) / Fraction(str(bob))
+    assert fq.denominator == 1, fq
+    assert bq.denominator == 1, bq
 
 
 print_combo(1320, 890)                # imprecise to-the-second values

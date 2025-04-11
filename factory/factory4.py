@@ -1,11 +1,11 @@
 """
 After a costly power grid failure brought on by insufficiently frequent power
 cycling, your boss relents and says she is willing to tolerate machines sitting
-idle for VERY SMALL amounts of time, as long as it reduces future grid failure
+idle for LIMITED amounts of time, as long as it reduces future grid failure
 incidents by greatly improving the power cycling time.
 
 Efficiency must still not drop below FIVE NINES (99.999%) for any machine in
-the factory, as measured by the ratio (machine_active_runtime / cycle_length).
+the factory, as measured by the ratio: (machine_active_runtime / cycle_length).
 
 Your measured runtime values:
 * fizzwidget machines: 1319.546875 seconds
@@ -32,17 +32,15 @@ from math import floor, gcd, lcm
 from util import fancy_time
 
 
-def rlcm(*args):
-    return Fraction(
-        lcm(*(f.numerator for f in args)),
-        gcd(*(f.denominator for f in args))
-    )
-
-
 def efficiency(fizz, bob, cycle_len):
     fizz_count = floor(cycle_len / fizz)
     bob_count = floor(cycle_len / bob)
     return Fraction(min(fizz_count * fizz, bob_count * bob) / cycle_len)
+
+
+def report(fizz, bob, cutoff):
+    cycle_len, eff = best_cycle(fizz, bob, cutoff)
+    print(f"{fizz} and {bob} --> [{float(100*eff)}%] {float(cycle_len)} seconds")
 
 
 def best_cycle(fizz, bob, cutoff):
@@ -50,9 +48,11 @@ def best_cycle(fizz, bob, cutoff):
     return (0, 0)
 
 
-def report(fizz, bob, cutoff):
-    cycle_len, eff = best_cycle(fizz, bob, cutoff)
-    print(f"{fizz} and {bob} --> [{float(100*eff)}%] {float(cycle_len)} seconds")
+def rlcm(*args):
+    return Fraction(
+        lcm(*(f.numerator for f in args)),
+        gcd(*(f.denominator for f in args))
+    )
 
 
 print(f"--- 100% ---")

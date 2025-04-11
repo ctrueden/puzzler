@@ -42,19 +42,22 @@ def cycle_length(fizz, bob):
 
 
 def print_combo(fizz, bob):
-    print(f"{fizz} and {bob}: {fancy_time(cycle_length(fizz, bob))}")
+    cycle_len = cycle_length(fizz, bob)
+    print(f"{float(fizz)} and {float(bob)}: {fancy_time(cycle_len)}")
+    # Sanity checks.
+    from fractions import Fraction
+    fq = Fraction(str(cycle_len)) / Fraction(str(fizz))
+    bq = Fraction(str(cycle_len)) / Fraction(str(bob))
+    assert fq.denominator == 1, fq
+    assert bq.denominator == 1, bq
 
 
-print_combo(1320, 890)                # imprecise to-the-second values
-print_combo(1319.546875, 889.984375)  # your measurements
-print_combo(1319.859375, 889.734375)  # Morton's measurements
-print_combo(1319.709283, 889.927894)  # Wendy's measurements
+measures = (
+    (Fraction(1320), Fraction(890)), # imprecise to-the-second
+    (Fraction(1319546875, 1000000), Fraction(889984375, 1000000)), # you
+    (Fraction(1319859375, 1000000), Fraction(889734375, 1000000)), # Morton
+    (Fraction(1319709283, 1000000), Fraction(889927894, 1000000)), # Wendy
+)
 
-# CTR START HERE: remainders don't work out for Wendy's numbers:
-
-# >>> 45434182961812115870959626969971000000 % (4398046511104 * 1319709283)
-# 2841819292299333042880
-# >>> 45434182961812115870959626969971000000 % (4398046511104 * 889927894)
-# 1915645725418777576128
-
-# Where's the bug?
+for fizz, bob in measures:
+    print_combo(fizz, bob)
