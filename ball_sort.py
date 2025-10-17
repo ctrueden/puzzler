@@ -1,15 +1,89 @@
-from collections import deque
-from typing import List, Tuple, Optional
+#from collections import deque
+from queue import PriorityQueue
 import sys
 import random
 
 
-def ball_sort(tubes: int, capacity: int, balls: List[str]) -> List[Tuple[int, int]]:
+class BallState:
+    def __init__(self, tubes: list[list[str]], capacity: int, moves_taken: int = 0):
+        self.tubes: list[list[str]] = tubes
+        self.capacity = capacity
+        self.moves_taken = moves_taken
+
+    def __lt__(self, other):
+        return self.score() < other.score()
+
+    def how_many_moves_left(self) -> int:
+        misses = 0
+        for tube in self.tubes:
+            # BBBRB-  ==>  2 misses, not 1
+            if len(tube) == 0:
+                # Tube is empty; score is capacity - 1
+                pass  # misses += 0 -- there is one empty tube
+            else:
+                correct_ball = tube[0]
+
+                # Find the index of the first ball that is not the correct ball.
+                # BBBB--  ==> first "wrong" index is 4 -- counts as 6-4-1 = 1 miss
+                first_wrong_index = len(tube)
+                for i, ball in enumerate(tube):
+                    if ball != correct_ball:
+                        first_wrong_index = i
+                        break
+                misses += self.capacity - first_wrong_index - 1
+
+        return misses
+
+    def score(self) -> int:
+        return self.moves_taken + self.how_many_moves_left()
+
+    def make_move(self, from_idx, to_idx) -> "BallState":
+        """Create new state after making a move."""
+        tubes = [tube[:] for tube in self.tubes]  # Deep copy
+        ball = tubes[from_idx].pop()
+        tubes[to_idx].append(ball)
+        return BallState(tubes, self.capacity, self.moves_taken + 1)
+
+    def is_solved(self):
+        """Check if the puzzle is solved."""
+        empty_count = 0
+        for tube in self.tubes:
+            if not tube:  # Empty tube
+                empty_count += 1
+                continue
+            # Non-empty tube must have exactly (capacity-1) balls of same color
+            if len(tube) != self.capacity - 1 or len(set(tube)) != 1:
+                return False
+        # Must have exactly one empty tube
+        return empty_count == 1
+
+    def get_valid_moves(self):
+        """Get all valid moves from current state."""
+        moves = []
+        for from_idx in range(len(self.tubes)):
+            if not self.tubes[from_idx]:  # Can't move from empty tube
+                continue
+
+            ball_to_move = self.tubes[from_idx][-1]  # Top ball
+
+            for to_idx in range(len(self.tubes)):
+                if from_idx == to_idx:  # Can't move to same tube
+                    continue
+                if len(self.tubes[to_idx]) >= self.capacity:  # Target tube is full
+                    continue
+                if self.tubes[to_idx] and self.tubes[to_idx][-1] != ball_to_move:  # Can only stack same colors
+                    continue
+
+                moves.append((from_idx, to_idx))
+
+        return moves
+
+
+def ball_sort(capacity: int, balls: list[str]) -> list[tuple[int, int]]:
     """
     Solve the ball sorting problem using BFS.
 
     Args:
-        tubes: Number of tubes
         capacity: Maximum capacity per tube
         balls: Initial state - list of strings representing ball colors in each tube
 
@@ -18,75 +92,42 @@ def ball_sort(tubes: int, capacity: int, balls: List[str]) -> List[Tuple[int, in
     """
     # Convert input to list of lists for easier manipulation
     tubes = [list(tube) for tube in balls]
-
-    def is_solved(state):
-        """Check if the puzzle is solved."""
-        empty_count = 0
-        for tube in state:
-            if not tube:  # Empty tube
-                empty_count += 1
-                continue
-            # Non-empty tube must have exactly (capacity-1) balls of same color
-            if len(tube) != capacity - 1 or len(set(tube)) != 1:
-                return False
-        # Must have exactly one empty tube
-        return empty_count == 1
-
-    def get_valid_moves(state):
-        """Get all valid moves from current state."""
-        moves = []
-        for from_idx in range(len(state)):
-            if not state[from_idx]:  # Can't move from empty tube
-                continue
-
-            ball_to_move = state[from_idx][-1]  # Top ball
-
-            for to_idx in range(len(state)):
-                if from_idx == to_idx:  # Can't move to same tube
-                    continue
-                if len(state[to_idx]) >= capacity:  # Target tube is full
-                    continue
-                if state[to_idx] and state[to_idx][-1] != ball_to_move:  # Can only stack same colors
-                    continue
-
-                moves.append((from_idx, to_idx))
-
-        return moves
-
-    def make_move(state, from_idx, to_idx):
-        """Create new state after making a move."""
-        new_state = [tube[:] for tube in state]  # Deep copy
-        ball = new_state[from_idx].pop()
-        new_state[to_idx].append(ball)
-        return new_state
-
-    def state_to_tuple(state):
-        """Convert state to hashable tuple for visited set."""
-        return tuple(tuple(tube) for tube in state)
+    state = BallState(tubes, capacity)
 
     # BFS to find shortest solution
-    queue = deque([(tubes, [])])  # (state, moves)
-    visited = {state_to_tuple(tubes)}
+    queue = PriorityQueue()
+    queue.put((0, (state, [])))  # (state, moves)
+    visited = {state}
 
+    count = 0
+    # Every move: O(N^2) possibilities - "Branching factor"
+    # How many moves? "exponential"...
+    
+    # Heuristic:
+    # - Assume bottom/first ball is "correct"
+    # - everything non-matching above is "incorrect"
     while queue:
-        current_state, moves = queue.popleft()
+        score, item = queue.get()
+        current_state, moves = item
+        count += 1
 
-        if is_solved(current_state):
+        if current_state.is_solved():
+            print(f"SUCCESS count: {count}")
             return moves
 
-        for from_idx, to_idx in get_valid_moves(current_state):
-            new_state = make_move(current_state, from_idx, to_idx)
-            state_key = state_to_tuple(new_state)
+        for from_idx, to_idx in current_state.get_valid_moves():
+            new_state = current_state.make_move(from_idx, to_idx)
 
-            if state_key not in visited:
-                visited.add(state_key)
+            if new_state not in visited:
+                visited.add(new_state)
                 new_moves = moves + [(from_idx, to_idx)]
-                queue.append((new_state, new_moves))
+                queue.put((new_state.score(), (new_state, new_moves)))
 
+    print(f"FAILURE count: {count}")
     return []  # No solution found
 
 
-def print_solution(tubes: int, capacity: int, balls: List[str], moves: List[Tuple[int, int]]):
+def print_solution(tubes: int, capacity: int, balls: list[str], moves: list[tuple[int, int]]):
     """Print the step-by-step solution."""
     tubes = [list(tube) for tube in balls]
 
@@ -105,7 +146,7 @@ def print_solution(tubes: int, capacity: int, balls: List[str], moves: List[Tupl
         print()
 
 
-def generate_random_puzzle(tubes: int, capacity: int) -> List[str]:
+def generate_random_puzzle(tubes: int, capacity: int) -> list[str]:
     """Generate a random starting configuration for the ball sort puzzle."""
     colors = "abcdefghijklmnopqrstuvwxyz"[:tubes-1]  # Use first n-1 letters as colors
 
@@ -136,6 +177,9 @@ if __name__ == "__main__":
     if len(sys.argv) >= 3:
         test_tubes = int(sys.argv[1])
         test_capacity = int(sys.argv[2])
+    elif len(sys.argv) == 2:
+        test_tubes = int(sys.argv[1])
+        test_capacity = test_tubes - 1
     else:
         print("Usage: python ball_sort.py <tubes> <capacity>")
         print("Using default values: 4 tubes, capacity 3")
@@ -144,12 +188,13 @@ if __name__ == "__main__":
 
     # Generate random starting configuration
     test_balls = generate_random_puzzle(test_tubes, test_capacity)
+    #test_balls = ['bc', 'ca', 'ba', '']
 
     print(f"Solving ball sort puzzle with {test_tubes} tubes, max capacity {test_capacity}")
     print(f"Initial configuration: {test_balls}")
     print()
 
-    moves = ball_sort(test_tubes, test_capacity, test_balls)
+    moves = ball_sort(test_capacity, test_balls)
 
     if moves:
         print(f"Solution found in {len(moves)} moves!")
