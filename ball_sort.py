@@ -1,7 +1,8 @@
 from multiprocessing import Pool
 from queue import PriorityQueue
-import sys
 import random
+import sys
+import time
 
 
 class BallState:
@@ -217,16 +218,41 @@ if __name__ == "__main__":
     print(f"Initial configuration: {test_balls}")
     print()
 
-    #with Pool(16) as p:
-    #    result = [v for v in p.map(ball_sort, neighbors) if v is not None]
-    #    print(1 + min(result))
+    def print_time(t1, t2):
+        print(f"TIME: {(t2 - t1) / 1_000_000_000} seconds")
 
-    moves = ball_sort_dumb(test_capacity, test_balls)
+    # Solve single threaded.
+    time1 = time.time_ns()
+    dumb_moves = ball_sort_dumb(test_capacity, test_balls)
+    time2 = time.time_ns()
+    print(f"Slow algorithm in {dumb_moves} moves")
+    print_time(time1, time2)
+
+    # Now solve with multiprocessing.
+
+    time3 = time.time_ns()
+
+    initial_state = BallState([list(tube) for tube in test_balls], test_capacity)
+    if initial_state.is_solved():
+        print("WHAT ARE YOU DOING? NOTHING.")
+
+    neighbors = []
+    for from_idx, to_idx in initial_state.get_valid_moves():
+        new_state: BallState = initial_state.make_move(from_idx, to_idx)
+        neighbors.append(new_state)
+
+    with Pool(16) as p:
+        result = [v for v in p.map(ball_sort, neighbors) if v is not None]
+        moves = 1 + min(result)
+
+    time4 = time.time_ns()
 
     if moves:
         print(f"Solution found in {moves} moves!")
         #print_solution(test_tubes, test_capacity, test_balls, moves)
     else:
         print("No solution found!")
+
+    print_time(time3, time4)
 
     print("DONE")
