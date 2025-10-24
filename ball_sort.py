@@ -1,4 +1,4 @@
-#from collections import deque
+from multiprocessing import Pool
 from queue import PriorityQueue
 import sys
 import random
@@ -94,9 +94,9 @@ class BallState:
         return moves
 
 
-def ball_sort(capacity: int, balls: list[str]) -> int | None:
+def ball_sort_dumb(capacity: int, balls: list[str]) -> int | None:
     """
-    Solve the ball sorting problem using BFS.
+    Solve the ball sorting problem using A*.
 
     Args:
         capacity: Maximum capacity per tube
@@ -108,6 +108,10 @@ def ball_sort(capacity: int, balls: list[str]) -> int | None:
     # Convert input to list of lists for easier manipulation
     tubes = [list(tube) for tube in balls]
     state = BallState(tubes, capacity)
+    return ball_sort(state)
+
+
+def ball_sort(state: BallState) -> int | None:
 
     # BFS to find shortest solution
     queue = PriorityQueue()
@@ -131,7 +135,7 @@ def ball_sort(capacity: int, balls: list[str]) -> int | None:
             return len(moves)
 
         for from_idx, to_idx in current_state.get_valid_moves():
-            new_state = current_state.make_move(from_idx, to_idx)
+            new_state: BallState = current_state.make_move(from_idx, to_idx)
 
             if new_state not in visited:
                 visited.add(new_state)
@@ -139,7 +143,7 @@ def ball_sort(capacity: int, balls: list[str]) -> int | None:
                 queue.put((new_state.score(), (new_state, new_moves)))
 
     print(f"FAILURE count: {count}")
-    return []  # No solution found
+    return None  # No solution found
 
 
 def print_solution(tubes: int, capacity: int, balls: list[str], moves: list[tuple[int, int]]):
@@ -161,7 +165,7 @@ def print_solution(tubes: int, capacity: int, balls: list[str], moves: list[tupl
         print()
 
 
-def generate_random_puzzle(tubes: int, capacity: int) -> list[str]:
+def generate_random_puzzle(seed: int, tubes: int, capacity: int) -> list[str]:
     """Generate a random starting configuration for the ball sort puzzle."""
     colors = "abcdefghijklmnopqrstuvwxyz"[:tubes-1]  # Use first n-1 letters as colors
 
@@ -171,7 +175,8 @@ def generate_random_puzzle(tubes: int, capacity: int) -> list[str]:
         all_balls.extend([color] * (capacity - 1))
 
     # Shuffle the balls
-    random.shuffle(all_balls)
+    r = random.Random(seed)
+    r.shuffle(all_balls)
 
     # Distribute balls into tubes (all but the last tube get capacity-1 balls)
     balls = []
@@ -189,30 +194,39 @@ def generate_random_puzzle(tubes: int, capacity: int) -> list[str]:
 
 if __name__ == "__main__":
     # Parse command line arguments
-    if len(sys.argv) >= 3:
-        test_tubes = int(sys.argv[1])
-        test_capacity = int(sys.argv[2])
-    elif len(sys.argv) == 2:
-        test_tubes = int(sys.argv[1])
+    if len(sys.argv) >= 4:
+        seed = int(sys.argv[1])
+        test_tubes = int(sys.argv[2])
+        test_capacity = int(sys.argv[3])
+    elif len(sys.argv) == 3:
+        seed = int(sys.argv[1])
+        test_tubes = int(sys.argv[2])
         test_capacity = test_tubes - 1
     else:
-        print("Usage: python ball_sort.py <tubes> <capacity>")
-        print("Using default values: 4 tubes, capacity 3")
+        print("Usage: python ball_sort.py <seed> <tubes> <capacity>")
+        print("Using default values: 12345 seed, 4 tubes, capacity 3")
+        seed = 12345
         test_tubes = 4
         test_capacity = 3
 
     # Generate random starting configuration
-    test_balls = generate_random_puzzle(test_tubes, test_capacity)
+    test_balls = generate_random_puzzle(seed, test_tubes, test_capacity)
     #test_balls = ['bc', 'ca', 'ba', '']
 
     print(f"Solving ball sort puzzle with {test_tubes} tubes, max capacity {test_capacity}")
     print(f"Initial configuration: {test_balls}")
     print()
 
-    moves = ball_sort(test_capacity, test_balls)
+    #with Pool(16) as p:
+    #    result = [v for v in p.map(ball_sort, neighbors) if v is not None]
+    #    print(1 + min(result))
+
+    moves = ball_sort_dumb(test_capacity, test_balls)
 
     if moves:
         print(f"Solution found in {moves} moves!")
-        print_solution(test_tubes, test_capacity, test_balls, moves)
+        #print_solution(test_tubes, test_capacity, test_balls, moves)
     else:
         print("No solution found!")
+
+    print("DONE")
