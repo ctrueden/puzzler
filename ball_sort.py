@@ -5,6 +5,57 @@ import sys
 import time
 
 
+"""
+Notes from Claude about potential future optimizations:
+
+  Major Optimizations
+
+  1. Use heapq instead of PriorityQueue (lines 129-130)
+    - PriorityQueue is thread-safe but slower due to locking overhead
+    - heapq is faster for single-threaded use: ~2-3x speedup
+  2. Don't store the moves list (lines 154-155)
+    - Currently storing full move history for each state is memory-intensive
+    - Since you only return move count, just track moves_taken in BallState
+    - Remove the moves parameter from the queue entirely
+  3. Optimize make_move copying (line 69)
+    - Deep copying all tubes on every move is expensive
+    - Consider using immutable data structures or copy-on-write
+    - Or only copy the two affected tubes
+  4. Better heuristic (lines 32-62)
+    - Current heuristic underestimates work needed
+    - Consider the suggestions in comments (lines 39-44)
+    - A more accurate heuristic = fewer states explored
+  5. Use heapq and remove moves tracking:
+  import heapq
+
+  def ball_sort(state: BallState) -> int | None:
+      heap = [(0, state)]
+      visited = {state}
+      count = 0
+
+      while heap:
+          score, current_state = heapq.heappop(heap)
+          count += 1
+
+          if current_state.is_solved():
+              print(f"SUCCESS count: {count}")
+              return current_state.moves_taken
+
+          for from_idx, to_idx in current_state.get_valid_moves():
+              new_state = current_state.make_move(from_idx, to_idx)
+
+              if new_state not in visited:
+                  visited.add(new_state)
+                  heapq.heappush(heap, (new_state.score(), new_state))
+  6. Optimize get_valid_moves - Add move pruning:
+    - Don't move from a tube if it's already solved (all same color + correct length)
+    - Don't move to an empty tube if the source tube is homogeneous
+    - These avoid exploring equivalent states
+  7. Cache is_solved result or make it incremental
+  8. Better parallelization strategy - The current approach only parallelizes the first move level. Consider work-stealing or parallel
+  branch exploration.
+"""
+
 class BallState:
     def __init__(self, tubes: list[list[str]], capacity: int, moves_taken: int = 0):
         self.tubes: list[list[str]] = tubes
