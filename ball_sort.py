@@ -94,7 +94,7 @@ class BallState:
         return moves
 
 
-def ball_sort(capacity: int, balls: list[str]) -> list[tuple[int, int]]:
+def ball_sort(capacity: int, balls: list[str]) -> int | None:
     """
     Solve the ball sorting problem using BFS.
 
@@ -128,7 +128,7 @@ def ball_sort(capacity: int, balls: list[str]) -> list[tuple[int, int]]:
 
         if current_state.is_solved():
             print(f"SUCCESS count: {count}")
-            return moves
+            return len(moves)
 
         for from_idx, to_idx in current_state.get_valid_moves():
             new_state = current_state.make_move(from_idx, to_idx)
@@ -212,7 +212,7 @@ if __name__ == "__main__":
     moves = ball_sort(test_capacity, test_balls)
 
     if moves:
-        print(f"Solution found in {len(moves)} moves!")
+        print(f"Solution found in {moves} moves!")
         print_solution(test_tubes, test_capacity, test_balls, moves)
     else:
         print("No solution found!")
