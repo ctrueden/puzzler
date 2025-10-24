@@ -13,6 +13,21 @@ class BallState:
     def __lt__(self, other):
         return self.score() < other.score()
 
+    def __hash__(self):
+        # Note: This does not include moves_taken.
+        # For "equality" that is technically incorrect...
+        # But for the visited set, it's what we need.
+
+        # Convert tubes to hashable tuple for visited set.
+        tubes_tuple = tuple(tuple(tube) for tube in self.tubes)
+        return hash((tubes_tuple, self.capacity))
+
+    def __eq__(self, other):
+        # Note: This does not include moves_taken.
+        # For "equality" that is technically incorrect...
+        # But for the visited set, it's what we need.
+        return self.tubes == other.tubes and self.capacity == other.capacity
+
     def how_many_moves_left(self) -> int:
         misses = 0
         for tube in self.tubes:
