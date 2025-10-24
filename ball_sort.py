@@ -31,6 +31,17 @@ class BallState:
 
     def how_many_moves_left(self) -> int:
         misses = 0
+        # TODO: We want to improve the cost function.
+        #
+        # Curtis's half-baked idea:
+        # - Decide what color each tube "should" be, based on the most represented color in the tube
+        #
+        # Eric's maybe good idea:
+        # - It takes X moves to remove the top X balls of wrong color.
+        # - Then it takes at least Y moves to add Y balls of the needed color.
+        # - So the misses is X + Y.
+        # - But a "Y" removal in one tube could also be an "X" move in another tube.
+        #   - So we should divide by 2 to avoid overestimating.
         for tube in self.tubes:
             # BBBRB-  ==>  2 misses, not 1
             if len(tube) == 0:
