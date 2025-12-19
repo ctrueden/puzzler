@@ -87,26 +87,29 @@ def search_for_notes(notes: Sequence[int], bound=10) -> tuple[int, int, int]:
     return hits
 
 
-if __name__ == "__main__":
-    bound = 40
-    # Secret: G F# D# A G# E G# C
-    note_seq = [11, 10, 7, 1, 0, 8, 12, 16]  # offset by 4
-    #note_seq = [0, 2, 4, 5]
-    #note_seq = [0, 1, 1, 0]
-    print(f"Note sequence: {note_seq}")
+def find_song():
+    bound = 4
+    #song = [0, 2, 4, 5] # CDEF major scale
+    song = [0, 1, 1, 2]
+    #song = [0, 1, 1, 0]
+    print(f"Song: {song}")
 
     # Note sequence -> letter notation.
-    print(f"Music notes: {[note2str(note) for note in note_seq]}")
+    print(f"Music notes: {[note2str(note) for note in song]}")
 
     # Note sequence -> tone sequence.
     pitches = [semitone(i) for i in range(bound)]
-    tones = [pitches[note] for note in note_seq]
+    tones = [pitches[note] for note in song]
     print(f"Tones: {tones}")
 
     # Play the tones.
     play_tones(tones, duration=0.1, gap=0.08)
 
     # See if we can find it.
-    hits = search_for_notes(note_seq, bound=bound)
+    hits = search_for_notes(song, bound=bound)
     print("== Search complete ==")
     print(f"{hits=}")
+
+
+if __name__ == "__main__":
+    find_song()
