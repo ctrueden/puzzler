@@ -1,9 +1,10 @@
 import math
-import wave
-import struct
-import tempfile
-import subprocess
 import os
+import shutil
+import struct
+import subprocess
+import tempfile
+import wave
 from typing import Iterable, Union, Sequence
 
 
@@ -69,7 +70,12 @@ rations matching freqs.
             w.setsampwidth(2)
             w.setframerate(fs)
             w.writeframes(frames)
-        subprocess.run(["afplay", fname], check=True)
+
+        player = shutil.which("aplay") or shutil.which("afplay")
+        if player:
+            subprocess.run([player, fname], check=True)
+        else:
+            print("no audio player found")
     finally:
         try:
             os.unlink(fname)
@@ -90,4 +96,7 @@ def note2str(note) -> str:
 
 
 if __name__ == "__main__":
-    play_tones([semitone(0), semitone(7), semitone(12)], duration=0.1, gap=0.1)
+    # Secret: G F# D# A G# E G# C
+    notes = [11, 10, 7, 1, 0, 8, 12, 16]  # offset by 4
+    tones = [semitone(note) for note in notes]
+    play_tones(tones, duration=0.1, gap=0.07)
