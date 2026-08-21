@@ -1,4 +1,4 @@
-import collections
+from collections import Counter
 
 hands = [
 ["8C", "TS", "KC", "9H", "4S", "7D", "2S", "5D", "3S", "AC"],
@@ -1011,29 +1011,36 @@ def value(card):
     if card[0] == 'A': return 14
     return int(card[0])
 
-def highcard(hand):
+def highcard(hand) -> int:
     values = [value(card) for card in hand]
     return max(values)
 
-def onepair(hand):
-    faces = collections.Counter([card[0] for card in hand])
-    key = max(faces)
-    # TODO: break ties
-    return value(key) if faces[key] == 2 else 0
+def card_counts(hand) -> Counter:
+    return Counter(card[0] for card in hand)
 
-def twopairs(hand):
-    faces = collections.Counter([card[0] for card in hand])
-    pairs = list(filter(lambda x: (faces[x] == 2), faces))
-    if len(pairs) == 2: return max([value(card) for card in pairs])
-    # TODO: break ties
-    return 0
+def groups(hand, group_length) -> tuple:
+    counts = card_counts(hand)
+    return tuple(value(rank) for rank in counts if counts[rank] == group_length)
 
-def threeofakind(hand):
-    faces = collections.Counter([card[0] for card in hand])
-    key = max(faces)
-    return value(key) if faces[key] == 3 else 0
+def pairs(hand) -> tuple:
+    return groups(hand, group_length=2)
 
-def straight(hand):
+def triples(hand) -> tuple:
+    return groups(hand, group_length=3)
+
+def onepair(hand) -> int:
+    p = pairs(hand)
+    return p[0] if len(p) == 1 else 0
+
+def twopairs(hand) -> tuple[int, int]:
+    p = pairs(hand)
+    return p if len(p) == 2 else (0, 0)
+
+def threeofakind(hand) -> int:
+    p = triples(hand)
+    return p[0] if len(p) == 1 else 0
+
+def straight(hand) -> int:
     values = [value(card) for card in hand]
     values.sort()
     val = values[0]
@@ -1041,69 +1048,86 @@ def straight(hand):
         if values[i] != val + i: return 0
     return highcard(hand)
 
-def flush(hand):
-    if len(set([card[1] for card in hand])) != 1: return 0
-    return highcard(hand)
+def is_flush(hand) -> bool:
+    return len(set([card[1] for card in hand])) == 1
 
-def fullhouse(hand):
-    faces = collections.Counter([card[0] for card in hand])
-    pair = list(filter(lambda x: (faces[x] == 2), faces))
-    threeofakind = list(filter(lambda x: (faces[x] == 3), faces))
-    if len(pair) == 1 and len(threeofakind) == 1:
-        return 100 * value(threeofakind[0]) + value(pair[0])
-    return 0
+def fullhouse(hand) -> tuple[int, int]:
+    toak = threeofakind(hand)
+    pair = onepair(hand)
+    return (toak, pair) if toak and pair else (0, 0)
 
-def fourofakind(hand):
-    faces = collections.Counter([card[0] for card in hand])
-    key = max(faces)
-    return int(key) if faces[key] == 4 else 0
+def fourofakind(hand) -> int:
+    counts = card_counts(hand)
+    key = max(counts)
+    return int(key) if counts[key] == 4 else 0
 
-def straightflush(hand):
-    flush_value = flush(hand)
-    straight_value = straight(hand)
-    return straight_value if flush_value > 0 and straight_value > 0 else 0
+def straightflush(hand) -> int:
+    if not is_flush(hand): return 0
+    return straight(hand)
 
-def royalflush(hand):
+def royalflush(hand) -> int:
     straightflush_value = straightflush(hand)
     return straightflush_value if straightflush_value == 14 else 0
 
-def compare(score1, score2):
-    if score1 == 0 and score2 == 0: return None
-    if score1 > score2: return True
-    if score2 > score1: return False
-    return 0 # Ha Ha Python
+def tuplify(v) -> tuple:
+    # Ugh, surely there is a nicer way?
+    try:
+        return tuple(v)
+    except TypeError:
+        return (v,)
 
-# p1=True, p2=False, tie=0
-def doesp1win(p1, p2):
+def compare(score1, score2) -> bool | None:
+    # p1=True, p2=False, tie=None
+    return None if score1 == score2 else tuplify(score1) > tuplify(score2)
+
+def highcard_compare(hand1, hand2) -> bool | None:
+    return compare(
+        tuple(sorted(value(card) for card in hand1)),
+        tuple(sorted(value(card) for card in hand2)),
+    )
+
+def flush_compare(hand1, hand2) -> bool | None:
+    is_flush1 = is_flush(hand1)
+    is_flush2 = is_flush(hand2)
+    if not is_flush1 and not is_flush2: return None
+    if is_flush1 and not is_flush2: return True
+    if is_flush2 and not is_flush1: return False
+    return highcard_compare(hand1, hand2) # both flushes
+
+def winner(p1, p2):
     s = compare(royalflush(p1), royalflush(p2))
-    if s: return s
+    if s is not None: return (s, "royal flush")
     s = compare(straightflush(p1), straightflush(p2))
-    if s: return s
+    if s is not None: return (s, "straight flush")
     s = compare(fourofakind(p1), fourofakind(p2))
-    if s: return s
+    if s is not None: return (s, "four of a kind")
     s = compare(fullhouse(p1), fullhouse(p2))
-    if s: return s
-    s = compare(flush(p1), flush(p2))
-    if s: return s
+    if s is not None: return (s, "full house")
+    s = flush_compare(p1, p2)
+    if s is not None: return (s, "flush")
     s = compare(straight(p1), straight(p2))
-    if s: return s
+    if s is not None: return (s, "straight")
     s = compare(threeofakind(p1), threeofakind(p2))
-    if s: return s
+    if s is not None: return (s, "three of a kind")
     s = compare(twopairs(p1), twopairs(p2))
-    if s: return s
+    if s is not None: return (s, "two pair")
     s = compare(onepair(p1), onepair(p2))
-    if s: return s
-    s = compare(highcard(p1), highcard(p2))
-    if s: return s
-    return None
+    if s is not None: return (s, "one pair")
+    s = highcard_compare(p1, p2)
+    return (None, None) if s is None else (s, "high card")
 
-p1wins = 0
+p1win_count = 0
 for hand in hands:
     p1 = hand[:5]
     p2 = hand[5:]
-    if doesp1win(p1, p2):
-        print('{} beats {}'.format(p1, p2))
-        p1wins += 1
+    p1wins, why = winner(p1, p2)
+    if why is None:
+        print(f'{p1} and {p2} are TIED:')
+        break # Fail fast -- nothing in the dataset is tied.
+    elif p1wins:
+        print(f'{p1}  WINS VS {p2} by {why}')
+        p1win_count += 1
+    else:
+        print(f'{p1} LOSES VS {p2} by {why}')
 
-# This answer is wrong. :-(
-print(p1wins)
+print(p1win_count)
