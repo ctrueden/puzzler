@@ -1,0 +1,16 @@
+Problem 51 AI ideas:
+
+One more constraint you may not have, which is a genuinely strong filter: check the fixed digits' sum mod 3 before generating any candidates at all.
+
+Recall for k ≡ 0 (mod 3) starred positions, the digit-sum delta contributed by the star is k·d ≡ 0 (mod 3) for every d — that's what removes the automatic composite-by-3 problem. But that also means the digit sum mod 3 of every member of the family is identical, and equal to the sum of the fixed digits mod 3. So:
+
+- If (sum of fixed digits) mod 3 == 0, then every single number in that family is divisible by 3 — the whole template is dead on arrival, 0 possible primes. Skip it without generating or testing a single candidate.
+- Only templates where the fixed-digit sum is ≢ 0 mod 3 are worth generating at all.
+
+This lets you filter templates before doing any primality testing, which is a much bigger win than filtering individual candidates.
+
+A couple of smaller practical ones, if you haven't already:
+- Precompute a sieve up to your search ceiling rather than trial-dividing each candidate — primality testing is the inner loop, so this matters a lot once you're iterating many templates.
+- Search digit-length ascending, and within a length, iterate templates/leading digit ascending, so you can stop at the very first family found and know it's the global minimum.
+
+Beyond that — mod 11 has an analogous "alternating digit sum" rule, and in principle if all your starred positions share the same alternating-sum parity you could derive a similar forced-divisibility argument, but it's a much narrower case (needs k ≡ 0 mod 11, which won't happen for realistic digit counts) so it's not worth the implementation cost here. The mod-3 fixed-sum filter is the one I'd actually add.
